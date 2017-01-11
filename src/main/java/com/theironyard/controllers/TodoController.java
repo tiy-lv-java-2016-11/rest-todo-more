@@ -27,13 +27,13 @@ public class TodoController {
 
     @RequestMapping(path = "/", method = RequestMethod.GET)
     public List<Todo> getTodos(@RequestHeader(value = "Authorization") String auth){
-        User user = userController.validateToken(auth);
+        User user = userController.validateUser(auth);
         return todoRepo.findByUser(user);
     }
 
     @RequestMapping(path = "/{todoId}/", method = RequestMethod.GET)
     public Todo getTodo(@RequestHeader(value = "Authorization") String auth, @PathVariable int todoId){
-        User user = userController.validateToken(auth);
+        User user = userController.validateUser(auth);
         Todo todo = validateTodo(todoId);
 
         return validateTodoUser(todo, user);
@@ -41,7 +41,7 @@ public class TodoController {
 
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public Todo createTodo(@RequestHeader(value = "Authorization") String auth, @RequestBody Todo todo){
-        User user = userController.validateToken(auth);
+        User user = userController.validateUser(auth);
         todo.setUser(user);
         todoRepo.save(todo);
         return todo;
@@ -49,7 +49,7 @@ public class TodoController {
 
     @RequestMapping(path = "/{todoId}/", method = RequestMethod.PUT)
     public Todo replaceTodo(@RequestHeader(value = "Authorization") String auth, @PathVariable int todoId, @RequestBody Todo todo){
-        User user = userController.validateToken(auth);
+        User user = userController.validateUser(auth);
         Todo savedTodo = validateTodo(todoId);
         validateTodoUser(savedTodo, user);
         todo.setId(todoId);
@@ -60,7 +60,7 @@ public class TodoController {
 
     @RequestMapping(path = "/{todoId}/", method = RequestMethod.DELETE)
     public void deleteTodo(@RequestHeader(value = "Authorization") String auth, @PathVariable int todoId){
-        User user = userController.validateToken(auth);
+        User user = userController.validateUser(auth);
         Todo savedTodo = validateTodo(todoId);
         validateTodoUser(savedTodo, user);
         todoRepo.delete(todoId);

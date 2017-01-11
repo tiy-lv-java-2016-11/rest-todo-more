@@ -7,6 +7,7 @@ import com.theironyard.entities.Todo;
 import com.theironyard.entities.User;
 import com.theironyard.repositories.TodoRepository;
 import com.theironyard.repositories.UserRepository;
+import com.theironyard.utilities.PasswordStorage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertNull;
 @SpringBootTest
 public class TodoControllerTests {
     private String username = "TestUsername";
+    private String password = "testPassword";
     private String email = "test@email.com";
     private String firstName = "testFirstName";
     private String lastName = "testLastName";
@@ -47,9 +49,9 @@ public class TodoControllerTests {
     MockMvc mockMvc;
 
     @Before
-    public void before(){
+    public void before() throws PasswordStorage.CannotPerformOperationException {
         mockMvc = MockMvcBuilders.webAppContextSetup(wap).build();
-        user = new User(username, email, firstName, lastName);
+        user = new User(username, password, email, firstName, lastName);
         userRepo.save(user);
     }
 

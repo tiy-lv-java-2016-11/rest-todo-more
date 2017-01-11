@@ -4,6 +4,7 @@ import com.theironyard.commands.LoginCommand;
 import com.theironyard.entities.User;
 import com.theironyard.exceptions.LoginFailedException;
 import com.theironyard.exceptions.UserNotFoundException;
+import com.theironyard.exceptions.UsernameExistsException;
 import com.theironyard.repositories.TodoRepository;
 import com.theironyard.repositories.UserRepository;
 import com.theironyard.utilities.PasswordStorage;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-public class TokenController {
+public class AuthenticationController {
 
     @Autowired
     UserRepository userRepo;
@@ -25,13 +26,12 @@ public class TokenController {
     @Autowired
     TodoRepository todoRepo;
 
-    @RequestMapping(path = "/token/", method = RequestMethod.POST)
+    @RequestMapping(path = "/login/", method = RequestMethod.POST)
     public Map login(@RequestBody LoginCommand command) throws PasswordStorage.InvalidHashException, PasswordStorage.CannotPerformOperationException {
         Map<String, String> token = new HashMap<>();
         User user = userRepo.findByUsername(command.getUsername());
-        if (user == null){
-            user = new User(command.getUsername(), command.getPassword());
-            userRepo.save(user);
+        if (user == null) {
+            throw new UserNotFoundException();
         }
         else if (PasswordStorage.verifyPassword(command.getPassword(), user.getPassword())){
             if (!user.isTokenValid()){
@@ -45,20 +45,13 @@ public class TokenController {
         return token;
     }
 
-    @RequestMapping(path = "/token/regenerate/", method = RequestMethod.POST)
-    public Map regenerateToken(@RequestBody LoginCommand command) throws PasswordStorage.InvalidHashException, PasswordStorage.CannotPerformOperationException {
-        Map<String, String> token = new HashMap<>();
-        User user = userRepo.findByUsername(command.getUsername());
-        if (user == null) {
-            throw new UserNotFoundException();
+    @RequestMapping(path = "/register/", method = RequestMethod.POST)
+    public User createUser(@RequestBody User user){
+        User savedUser = userRepo.findByUsername(user.getUsername());
+        if (savedUser != null){
+            throw new UsernameExistsException();
         }
-        else if (PasswordStorage.verifyPassword(command.getPassword(), user.getPassword())){
-            user.regenerateToken();
-        }
-        else {
-            throw new LoginFailedException();
-        }
-        token.put("token", user.getToken());
-        return token;
+        userRepo.save(user);
+        return user;
     }
 }

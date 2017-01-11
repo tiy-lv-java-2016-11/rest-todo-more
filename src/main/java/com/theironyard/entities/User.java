@@ -1,10 +1,14 @@
 package com.theironyard.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.theironyard.utilities.PasswordStorage;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -19,20 +23,29 @@ public class User {
     @GeneratedValue
     private int id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
+    @NotNull
+    @Size(min = 5, max = 50)
     private String username;
 
     @Column
+    @NotNull
+    @Size(min = 5, max = 50)
+    @Pattern(regexp = "(?:[\\-\\w]+\\.)*[\\-\\w]+@[\\w]+(?:\\.[\\-\\w]+)*")
     private String email;
 
     @Column
+    @NotNull
+    @Size(min = 1, max = 50)
     private String firstName;
 
     @Column
+    @NotNull
+    @Size(min = 1, max = 50)
     private String lastName;
 
     @Column(nullable = false)
-    @JsonIgnore
+    @NotNull
     private String password;
 
     @Column(unique = true)
@@ -45,6 +58,7 @@ public class User {
     private LocalDateTime expiration;
 
     public User() {
+        setTokenAndExpiration();
     }
 
     public User(String username, String password) {
@@ -72,11 +86,12 @@ public class User {
         return this.token;
     }
 
-    private void setTokenAndExpiration(){
+    public void setTokenAndExpiration(){
         this.token = generateToken();
         this.expiration = LocalDateTime.now().plus(EXPIRATION_DAYS, ChronoUnit.DAYS);
     }
 
+    @JsonIgnore
     public boolean isTokenValid(){
         return this.expiration.isAfter(LocalDateTime.now());
     }
